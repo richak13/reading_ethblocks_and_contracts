@@ -20,19 +20,6 @@ def connect_to_eth():
 
 def connect_with_middleware(contract_json):
 	# TODO insert your code for this method from last week's assignment
-	with open(contract_json, "r") as f:
-	d = json.load(f)
-	d = d['bsc']
-	address = d['address']
-	abi = d['abi']
-
-	bnb_url = "https://bsc-dataseed.binance.org/"
-	w3 = Web3(HTTPProvider(bnb_url))
-
-
-	w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-	assert w3.is_connected(), f"Failed to connect to provider at {bnb_url}"
-	contract = w3.eth.contract(address=address, abi=abi)
 
 	return w3, contract
 
