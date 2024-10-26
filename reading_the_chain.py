@@ -25,8 +25,6 @@ def connect_with_middleware(contract_json):
 		d = d['bsc']
 		address = d['address']
 		abi = d['abi']
-	bnb_url = "https://bsc-dataseed.binance.org/"
-	w3 = Web3(HTTPProvider(bnb_url))
 
 	bnb_url = "https://bsc-dataseed.binance.org/"
 	w3 = Web3(HTTPProvider(bnb_url))
