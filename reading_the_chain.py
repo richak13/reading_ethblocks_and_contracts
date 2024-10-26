@@ -19,7 +19,7 @@ def connect_with_middleware(contract_json):
         address = d['address']
         abi = d['abi']
 
-    bnb_url = "https://bsc-dataseed.binance.org/"
+    bnb_url = "https://api.zan.top/bsc-testnet"
     w3 = Web3(HTTPProvider(bnb_url))
     w3.middleware_onion.inject(geth_poa_middleware, layer=0)
     assert w3.is_connected(), f"Failed to connect to provider at {bnb_url}"
