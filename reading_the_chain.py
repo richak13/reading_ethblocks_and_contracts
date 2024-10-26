@@ -5,11 +5,6 @@ from web3.middleware import geth_poa_middleware
 from web3.providers.rpc import HTTPProvider
 
 
-# If you use one of the suggested infrastructure providers, the url will be of the form
-# now_url  = f"https://eth.nownodes.io/{now_token}"
-# alchemy_url = f"https://eth-mainnet.alchemyapi.io/v2/{alchemy_token}"
-# infura_url = f"https://mainnet.infura.io/v3/{infura_token}"
-
 def connect_to_eth():
     url = "https://mainnet.infura.io/v3/f474620ee28c4a6185ac4f3facbd6cf6"
     w3 = Web3(HTTPProvider(url))
@@ -38,28 +33,24 @@ def is_ordered_block(w3, block_num):
     Determines if transactions in the block are ordered by priority fee.
     """
     block = w3.eth.get_block(block_num, full_transactions=True)
+    base_fee = block.get("baseFeePerGas", None)
     ordered = True  # Assume ordered until proven otherwise
 
-    # Before EIP-1559: check decreasing order of gasPrice
-    for i in range(len(block.transactions) - 1):
-        if block.transactions[i].gasPrice < block.transactions[i + 1].gasPrice:
-            ordered = False
-            break
-
-    # After EIP-1559: check priority fee for type 0 and 2 transactions
-    if block.number >= 12965000:  # London Hard Fork introduced EIP-1559
-        base_fee = block.baseFeePerGas
-        for tx in block.transactions:
+    previous_priority_fee = None
+    for tx in block.transactions:
+        if base_fee is None:  # Pre-EIP-1559
+            priority_fee = tx.gasPrice
+        else:  # Post-EIP-1559
             if tx.type == "0x0":  # Type 0 transaction
                 priority_fee = tx.gasPrice - base_fee
             elif tx.type == "0x2":  # Type 2 transaction
                 priority_fee = min(tx.maxPriorityFeePerGas, tx.maxFeePerGas - base_fee)
 
-            if i > 0 and priority_fee > previous_priority_fee:
-                ordered = False
-                break
-
-            previous_priority_fee = priority_fee
+        # Check for decreasing order
+        if previous_priority_fee is not None and priority_fee > previous_priority_fee:
+            ordered = False
+            break
+        previous_priority_fee = priority_fee
 
     return ordered
 
@@ -77,7 +68,7 @@ def get_contract_values(contract, admin_address, owner_address):
     has_role = contract.functions.hasRole(default_admin_role, admin_address).call()
 
     # Get prime owned by the owner address
-    prime = contract.functions.prime(owner_address).call()
+    prime = contract.functions.getPrimeByOwner(owner_address).call()
 
     return onchain_root, has_role, prime
 
@@ -102,3 +93,8 @@ if __name__ == "__main__":
             print(f"Block {block_num} is ordered")
         else:
             print(f"Block {block_num} is not ordered")
+
+    onchain_root, has_role, prime = get_contract_values(contract, admin_address, owner_address)
+    print(f"Merkle root: {onchain_root}")
+    print(f"Admin has role: {has_role}")
+    print(f"Prime owned by owner address: {prime}")
