@@ -20,6 +20,14 @@ def connect_to_eth():
 
 def connect_with_middleware(contract_json):
 	# TODO insert your code for this method from last week's assignment
+	with open(contract_json, "r") as f:
+		d = json.load(f)
+		d = d['bsc']
+		address = d['address']
+		abi = d['abi']
+	bnb_url = "https://bsc-dataseed.binance.org/"
+	w3 = Web3(HTTPProvider(bnb_url))
+
 	bnb_url = "https://bsc-dataseed.binance.org/"
 	w3 = Web3(HTTPProvider(bnb_url))
 
