@@ -40,11 +40,13 @@ def is_ordered_block(w3, block_num):
     for tx in block.transactions:
         if base_fee is None:  # Pre-EIP-1559
             priority_fee = tx.gasPrice
-        else:  # Post-EIP-1559
-            if tx.type == "0x0":  # Type 0 transaction
-                priority_fee = tx.gasPrice - base_fee
-            elif tx.type == "0x2":  # Type 2 transaction
-                priority_fee = min(tx.maxPriorityFeePerGas, tx.maxFeePerGas - base_fee)
+        elif tx.type == "0x0":  # Type 0 transaction
+            priority_fee = tx.gasPrice - base_fee
+        elif tx.type == "0x2":  # Type 2 transaction
+            priority_fee = min(tx.maxPriorityFeePerGas, tx.maxFeePerGas - base_fee)
+        else:
+            # Set a default priority_fee for unknown transaction types
+            priority_fee = tx.gasPrice
 
         # Check for decreasing order
         if previous_priority_fee is not None and priority_fee > previous_priority_fee:
@@ -53,6 +55,7 @@ def is_ordered_block(w3, block_num):
         previous_priority_fee = priority_fee
 
     return ordered
+
 
 
 def get_contract_values(contract, admin_address, owner_address):
